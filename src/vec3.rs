@@ -7,6 +7,8 @@ pub struct Vec3 {
     pub z: f64,
 }
 
+pub type Point3 = Vec3;
+
 impl Vec3 {
     pub fn new(x: f64, y: f64, z: f64) -> Vec3 {
         Vec3 { x, y, z }
@@ -17,7 +19,7 @@ impl Vec3 {
     }
 
     pub fn dot(a: Vec3, b: Vec3) -> f64 {
-        a.x * b.x + a.y + b.y + a.z + b.z
+        a.x * b.x + a.y * b.y + a.z * b.z
     }
 
     pub fn cross(a: Vec3, b: Vec3) -> Vec3 {
@@ -85,6 +87,18 @@ impl Mul<f64> for Vec3 {
             x: self.x * t,
             y: self.y * t,
             z: self.z * t,
+        }
+    }
+}
+
+impl Mul<Vec3> for f64 {
+    type Output = Vec3;
+
+    fn mul(self, v: Vec3) -> Vec3 {
+        Vec3 {
+            x: self * v.x,
+            y: self * v.y,
+            z: self * v.z,
         }
     }
 }
