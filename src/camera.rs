@@ -1,9 +1,9 @@
-use rand::Rng;
-
 use crate::color::Color;
 use crate::interval::Interval;
 use crate::ray::Ray;
+use crate::utility::{self, rand_sample_2d};
 use crate::{vec3::Vec3, world::World};
+use std::f64::INFINITY;
 use std::io::{BufWriter, Write};
 use std::{fs, io};
 
@@ -18,6 +18,7 @@ pub struct Camera {
     viewport_height: f64,
     samples_per_pixel: u32,
     pixel_samples_scale: f64,
+    max_depth: u32,
 }
 
 impl Camera {
@@ -27,6 +28,7 @@ impl Camera {
         image_height: u32,
         focal_length: f64,
         samples_per_pixel: u32,
+        max_depth: u32,
     ) -> Self {
         let viewport_height = 2.0;
         let viewport_width = viewport_height / (image_height as f64) * (image_width as f64);
@@ -41,6 +43,7 @@ impl Camera {
         let pixel00_pos = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 
         let pixel_samples_scale = 1.0 / samples_per_pixel as f64;
+        //let mut rng = rand::rng();
 
         Camera {
             pos,
@@ -53,17 +56,19 @@ impl Camera {
             pixel00_pos,
             samples_per_pixel,
             pixel_samples_scale,
+            max_depth,
         }
     }
 
-    fn ray_color(ray: Ray, world: &World) -> Color {
-        if let Some(hit_record) = world.hit(ray, Interval::POSITIVE) {
-            return 0.5
-                * Color::new(
-                    hit_record.normal.x + 1.0,
-                    hit_record.normal.y + 1.0,
-                    hit_record.normal.z + 1.0,
-                );
+    fn ray_color(ray: Ray, depth: u32, world: &World) -> Color {
+        if depth == 0 {
+            return Color::zero();
+        }
+
+        if let Some(hit_record) = world.hit(ray, Interval::new(0.001, INFINITY)) {
+            let new_dir = hit_record.normal + utility::rand_unit_vector();
+
+            return 0.5 * Camera::ray_color(Ray::new(hit_record.pos, new_dir), depth - 1, world);
         }
 
         let unit_dir = ray.dir.normalize();
@@ -72,12 +77,7 @@ impl Camera {
     }
 
     fn get_ray(&self, i: u32, j: u32) -> Ray {
-        let mut rng = rand::rng();
-        let offset = Vec3::new(
-            rng.random_range(-0.5..0.5),
-            rng.random_range(-0.5..0.5),
-            0.0,
-        );
+        let offset = rand_sample_2d();
 
         let pixel_sample = self.pixel00_pos
             + (i as f64 + offset.x) * self.pixel_delta_u
@@ -99,7 +99,7 @@ impl Camera {
             for i in 0..self.image_width {
                 let mut pixel_color = Color::zero();
                 for _sample in 0..self.samples_per_pixel {
-                    pixel_color += Camera::ray_color(self.get_ray(i, j), world);
+                    pixel_color += Camera::ray_color(self.get_ray(i, j), self.max_depth, world);
                 }
                 Color::write_color(&mut out, self.pixel_samples_scale * pixel_color)
                     .expect("Failed to write to file!");

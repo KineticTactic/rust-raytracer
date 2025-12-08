@@ -4,11 +4,10 @@ use raytracer::vec3::Vec3;
 use raytracer::world::World;
 
 fn main() {
-    let camera = Camera::new(Vec3::zero(), 800, 450, 1.0, 10);
+    let camera = Camera::new(Vec3::zero(), 800, 450, 1.0, 10, 10);
 
     let mut world = World::default();
     world.add(Box::new(Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5)));
-    world.add(Box::new(Sphere::new(Vec3::new(0.0, -12.0, -1.0), 10.0)));
-
+    world.add(Box::new(Sphere::new(Vec3::new(0.0, -100.5, -1.0), 100.0)));
     camera.render(&world);
 }
