@@ -38,3 +38,12 @@ pub fn rand_unit_vector_on_hemisphere(normal: Vec3) -> Vec3 {
         -rand_vec
     }
 }
+
+pub fn rand_unit_circle() -> Vec3 {
+    loop {
+        let rand_vec = rand_sample_2d() * 2.0;
+        if rand_vec.mag_sq() < 1.0 {
+            return rand_vec;
+        }
+    }
+}

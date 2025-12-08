@@ -1,5 +1,8 @@
 use crate::{interval::Interval, vec3::Vec3};
-use std::io::{Result, Write};
+use std::{
+    io::{Result, Write},
+    ops::Mul,
+};
 
 pub type Color = Vec3;
 
@@ -23,5 +26,17 @@ impl Color {
 
         writeln!(out, "{ir} {ig} {ib}")?;
         Ok(())
+    }
+}
+
+impl Mul for Color {
+    type Output = Color;
+
+    fn mul(self, col: Color) -> Color {
+        Color {
+            x: self.x * col.x,
+            y: self.y * col.y,
+            z: self.z * col.z,
+        }
     }
 }

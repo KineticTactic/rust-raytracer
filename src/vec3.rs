@@ -30,6 +30,17 @@ impl Vec3 {
         }
     }
 
+    pub fn reflect(v: Vec3, normal: Vec3) -> Vec3 {
+        v - 2.0 * Vec3::dot(v, normal) * normal
+    }
+
+    pub fn refract(incident: Vec3, normal: Vec3, relative_ri: f64) -> Vec3 {
+        let cos_theta = f64::min(Vec3::dot(-incident, normal), 1.0);
+        let refracted_perpendicular = relative_ri * (incident + cos_theta * normal);
+        let refracted_parallel = -((1.0 - refracted_perpendicular.mag_sq()).abs()).sqrt() * normal;
+        refracted_perpendicular + refracted_parallel
+    }
+
     pub fn mag(self) -> f64 {
         (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
     }
@@ -40,6 +51,11 @@ impl Vec3 {
 
     pub fn normalize(self) -> Vec3 {
         self / self.mag()
+    }
+
+    pub fn near_zero(&self) -> bool {
+        const S: f64 = 1e-8;
+        (self.x.abs() < S) && (self.y.abs() < S) && (self.z.abs() < S)
     }
 }
 
